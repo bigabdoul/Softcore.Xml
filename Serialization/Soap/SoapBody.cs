@@ -1,10 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Xml.Serialization;
+﻿using System;
 using System.Text;
 using System.Xml.Linq;
-using System.Linq;
-using System.Collections.Generic;
+using System.Xml.Serialization;
 
 namespace Softcore.Xml.Serialization.Soap
 {
@@ -39,18 +36,21 @@ namespace Softcore.Xml.Serialization.Soap
         public SoapBody(object content) : base(content)
         {
         }
-        
+
         #endregion
+
+        #region properties
 
         /// <summary>
         /// Gets or sets the SOAP message fault. Can be null provided <see cref="SoapContainer.Content"/> is not null.
         /// </summary>
         public SoapFault Fault { get; set; }
 
+
         /// <summary>
         /// Gets or sets the encoding to use when serializing this instance.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore]
+        [SoapIgnore] [XmlIgnore]
         public override Encoding Encoding
         {
             get => base.Encoding;
@@ -63,6 +63,10 @@ namespace Softcore.Xml.Serialization.Soap
                 }
             }
         }
+
+        #endregion
+
+        #region methods
 
         /// <summary>
         /// Serializes this <see cref="SoapBody"/> instance.
@@ -159,6 +163,8 @@ namespace Softcore.Xml.Serialization.Soap
 
             return null;
         }
+
+        #endregion
 
         #endregion
     }

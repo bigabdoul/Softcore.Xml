@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Serialization;
@@ -9,7 +7,7 @@ using System.Xml.Serialization;
 namespace Softcore.Xml.Serialization
 {
     /// <summary>
-    /// Represents the ultimate base class for XML and JSON serializable classes.
+    /// Represents the ultimate base class for XML serializable classes.
     /// </summary>
     [Serializable]
     public abstract class SerializeBase : ISerialize
@@ -30,22 +28,22 @@ namespace Softcore.Xml.Serialization
         /// <summary>
         /// Gets or sets the XML serializer namespaces used for serialization.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public virtual XmlSerializerNamespaces Namespaces { get; set; }
+        [SoapIgnore] [XmlIgnore] public virtual XmlSerializerNamespaces Namespaces { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether to sort namespaces when they are set.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public virtual bool NamespacesSorted { get; set; }
+        [SoapIgnore] [XmlIgnore] public virtual bool NamespacesSorted { get; set; }
 
         /// <summary>
         /// Gets or sets the encoding to use when serializing this instance.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public virtual System.Text.Encoding Encoding { get; set; }
+        [SoapIgnore] [XmlIgnore] public virtual System.Text.Encoding Encoding { get; set; }
 
         /// <summary>
         /// Gets or sets the attributes dictionary.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public virtual Dictionary<string, string> Attributes
+        [SoapIgnore] [XmlIgnore] public virtual IDictionary<string, string> Attributes
         {
             get => (_attributes ?? (_attributes = new Dictionary<string, string>()));
         }
@@ -84,16 +82,7 @@ namespace Softcore.Xml.Serialization
                 }
             }
         }
-
-        /// <summary>
-        /// Serializes the current object to JSON string.
-        /// </summary>
-        /// <returns></returns>
-        public virtual string SerializeJson()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-
+        
         /// <summary>
         /// Serializes the current instance and returns the XML document as a string.
         /// </summary>
@@ -113,16 +102,6 @@ namespace Softcore.Xml.Serialization
             SetNamespaces(namespaces);
             return this.XSerializeFragment(Namespaces, Encoding);
         }
-
-        /// <summary>
-        /// Performs a comparison between two <see cref="XmlQualifiedName"/> objects.
-        /// </summary>
-        /// <param name="a">The first object to compare with <paramref name="b"/>.</param>
-        /// <param name="b">The second object to compare with <paramref name="a"/>.</param>
-        /// <returns></returns>
-        public virtual int NamespaceComparison(XmlQualifiedName a, XmlQualifiedName b)
-
-            => $"{a.Name}{a.Namespace}".CompareTo($"{b.Name}{b.Namespace}");
 
         #endregion
 
@@ -163,6 +142,16 @@ namespace Softcore.Xml.Serialization
         }
 
         /// <summary>
+        /// Performs a comparison between two <see cref="XmlQualifiedName"/> objects.
+        /// </summary>
+        /// <param name="a">The first object to compare with <paramref name="b"/>.</param>
+        /// <param name="b">The second object to compare with <paramref name="a"/>.</param>
+        /// <returns></returns>
+        protected virtual int NamespaceComparison(XmlQualifiedName a, XmlQualifiedName b)
+
+            => $"{a.Name}{a.Namespace}".CompareTo($"{b.Name}{b.Namespace}");
+
+        /// <summary>
         /// Writes the attributes contained in the <see cref="Attributes"/> dictionary.
         /// </summary>
         /// <returns></returns>
@@ -175,19 +164,33 @@ namespace Softcore.Xml.Serialization
 
             var sb = new System.Text.StringBuilder();
 
-            using (var sr = new StringWriter(sb))
+            using (var sr = new System.IO.StringWriter(sb))
             {
                 using (var xw = new XmlTextWriter(sr))
                 {
-                    foreach (var key in _attributes.Keys)
-                    {
-                        var value = _attributes[key];
-                        sb.Append($" {key}=\"{value}\"");
-                    }
+                    WriteAttributes(xw, _attributes);
                 }
             }
 
             return sb.ToString();
+        }
+
+        #endregion
+
+        #region static methods
+
+        /// <summary>
+        /// Writes the attributes contained in the specified <paramref name="attributes"/> dictionary.
+        /// </summary>
+        /// <param name="writer">The XML writer used to write.</param>
+        /// <param name="attributes">A dictionary of key/value pairs to write as key="value".</param>
+        public static void WriteAttributes(XmlWriter writer, IDictionary<string, string> attributes)
+        {
+            foreach (var key in attributes.Keys)
+            {
+                var value = attributes[key];
+                writer.WriteRaw($" {key}=\"{value}\"");
+            }
         }
 
         #endregion

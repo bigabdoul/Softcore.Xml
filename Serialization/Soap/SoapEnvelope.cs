@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -67,12 +66,12 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// Gets or sets the SOAP message header. Can be null.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public SoapHeader Header { get; set; }
+        [SoapIgnore] [XmlIgnore] public SoapHeader Header { get; set; }
 
         /// <summary>
         /// Gets or sets the SOAP message body. Cannot be null during XML serialization.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public SoapBody Body
+        [SoapIgnore] [XmlIgnore] public SoapBody Body
         {
             set => _body = value;
             get => (_body ?? (_body = new SoapBody()));
@@ -82,7 +81,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// Gets or sets a value that indicates whether to exclude the XML declaration at the beginning of the serialized envelope.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public bool ExcludeXmlDeclaration { get; set; }
+        [SoapIgnore] [XmlIgnore] public bool ExcludeXmlDeclaration { get; set; }
 
         #endregion
 
@@ -94,7 +93,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// Gets or sets the contents of the SOAP message body. Cannot be null, must be one of the 
         /// following types: <see cref="ISerializeXmlFragment"/>, a collection of objects, or a single object.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore]
+        [SoapIgnore] [XmlIgnore]
         public override object Content { get => Body?.Content; set => (Body ?? (Body = new SoapBody())).Content = value; }
 
         /// <summary>

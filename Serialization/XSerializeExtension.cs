@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Softcore.Xml.Serialization.Soap;
+﻿using Softcore.Xml.Serialization.Soap;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -26,70 +25,6 @@ namespace Softcore.Xml.Serialization
 
         #endregion
 
-        #region XDeserialize
-
-        /// <summary>
-        /// Deserializes the XML contained by the specified <paramref name="element"/>
-        /// to an instance of the specified type <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">The type of object to deserialize to.</typeparam>
-        /// <param name="element">The XML element to deserialize.</param>
-        /// <param name="throwIfCannotDeserialize">Indicates whether to throw <see cref="InvalidOperationException"/> when an XML document cannot be deserialized.</param>
-        /// <returns></returns>
-        public static T XDeserialize<T>(this XElement element, bool? throwIfCannotDeserialize = null) 
-            => (T)XDeserialize(element?.ToString(), typeof(T), throwIfCannotDeserialize);
-
-        /// <summary>
-        /// Deserializes the specified XML string to an instance of <typeparamref name="T"/> type.
-        /// </summary>
-        /// <typeparam name="T">The default type of the object to deserialize.</typeparam>
-        /// <param name="xml">The XML string that represents the type to deserialize to.</param>
-        /// <param name="anonymousObject">The type of the object to deserialize.</param>
-        /// <param name="enc">The encoding to use if the XML declaration has been omitted.</param>
-        /// <returns>
-        /// An initialized instance of <typeparamref name="T"/>, or the type's default value 
-        /// (null for reference types) if the XML cannot be deserialized to the specified type.
-        /// </returns>
-        public static T XDeserializeAnonymous<T>(this string xml, T anonymousObject, Encoding enc = null) => (string.IsNullOrWhiteSpace(xml))
-            ? default(T)
-            : JsonConvert.DeserializeAnonymousType(JsonConvert.SerializeXNode(XParseDocument(xml, enc)), anonymousObject);
-
-        /// <summary>
-        /// Deserializes the XML string to the specified type.
-        /// </summary>
-        /// <param name="xml">The XML to deserialize.</param>
-        /// <param name="type">The type of the object to deserialize to.</param>
-        /// <param name="enc">The encoding to use if the XML declaration has been omitted.</param>
-        /// <returns></returns>
-        public static object XDeserializeObject(this string xml, Type type, Encoding enc = null) 
-            => XDeserializeObject(xml, Activator.CreateInstance(type), enc);
-
-        /// <summary>
-        /// Deserializes the XML string to the specified object graph.
-        /// </summary>
-        /// <param name="xml">The XML to deserialize.</param>
-        /// <param name="graph">An instance of the type to deserialize to.</param>
-        /// <param name="enc">The encoding to use if the XML declaration has been omitted.</param>
-        /// <returns></returns>
-        public static object XDeserializeObject(this string xml, object graph, Encoding enc = null) 
-            => (string.IsNullOrWhiteSpace(xml))
-            ? null
-            : JsonConvert.DeserializeAnonymousType(JsonConvert.SerializeXNode(XParseDocument(xml, enc)), graph);
-
-        /// <summary>
-        /// Deserializes the XML string to the specified type.
-        /// </summary>
-        /// <typeparam name="T">The type of the object to deserialize to.</typeparam>
-        /// <param name="xml">The XML to deserialize.</param>
-        /// <param name="enc">The encoding to use if the XML declaration has been omitted.</param>
-        /// <returns>The deserialized object from the XML string.</returns>
-        public static T XDeserializeObject<T>(this string xml, Encoding enc = null) 
-            => (string.IsNullOrWhiteSpace(xml))
-            ? default(T)
-            : JsonConvert.DeserializeObject<T>(JsonConvert.SerializeXNode(XParseDocument(xml, enc)));
-
-        #endregion
-
         #region XDeserialize/XTryDeserialize SOAP
 
         /// <summary>
@@ -103,11 +38,9 @@ namespace Softcore.Xml.Serialization
         /// An initialized instance of <typeparamref name="T"/>, or the type's default value 
         /// (null for reference types) if the XML cannot be deserialized to the specified type.
         /// </returns>
-        ///// <exception cref="ArgumentNullException">The XML string to deserialize cannot be null.</exception>
         public static T XSoapDeserialize<T>(this string soapXml, Encoding enc = null)
         {
             if (soapXml == null) return default(T);
-                //throw new ArgumentNullException($"{nameof(soapXml)}", "The XML string to deserialize cannot be null.");
 
             using (var ms = new MemoryStream((enc ?? Encoding.UTF8).GetBytes(soapXml)))
             {
@@ -143,6 +76,17 @@ namespace Softcore.Xml.Serialization
         #endregion
 
         #region XDeserialize overloads
+
+        /// <summary>
+        /// Deserializes the XML contained by the specified <paramref name="element"/>
+        /// to an instance of the specified type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of object to deserialize to.</typeparam>
+        /// <param name="element">The XML element to deserialize.</param>
+        /// <param name="throwIfCannotDeserialize">Indicates whether to throw <see cref="InvalidOperationException"/> when an XML document cannot be deserialized.</param>
+        /// <returns></returns>
+        public static T XDeserialize<T>(this XElement element, bool? throwIfCannotDeserialize = null)
+            => (T)XDeserialize(element?.ToString(), typeof(T), throwIfCannotDeserialize);
 
         /// <summary>
         /// Deserializes the XML document contained by the specified <paramref name="xml"/> 

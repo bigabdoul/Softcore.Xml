@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -45,28 +44,28 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// The target namespace of the SOAP message specification.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public static string TargetNamespace = "http://www.w3.org/2003/05/soap-envelope";
+        [SoapIgnore] [XmlIgnore] public static string TargetNamespace = "http://www.w3.org/2003/05/soap-envelope";
 
         /// <summary>
         /// Gets or sets the default local name for the target namespace (http://www.w3.org/2003/05/soap-envelope) of any SOAP envelope and child elements. The default is 'soap'.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public static string TargetNamespaceLocalNameDefault { get; set; } = "soap";
+        [SoapIgnore] [XmlIgnore] public static string TargetNamespaceLocalNameDefault { get; set; } = "soap";
 
         /// <summary>
         /// Gets or sets the SOAP target namespace attribute prefix (i.e. 'env', 'soap', 'soapenv', etc.). The default is 'soap'.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public string TargetNamespaceLocalName { get; set; }
+        [SoapIgnore] [XmlIgnore] public string TargetNamespaceLocalName { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether to include the qualified target namespace.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public bool IncludeTargetNamespace { get; set; }
+        [SoapIgnore] [XmlIgnore] public bool IncludeTargetNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets the contents of the SOAP message header or body. Can be null (header only), 
         /// of type <see cref="ISerializeXmlFragment"/>, a collection of objects, or a single object.
         /// </summary>
-        [JsonIgnore] [SoapIgnore] [XmlIgnore] public virtual object Content { get; set; }
+        [SoapIgnore] [XmlIgnore] public virtual object Content { get; set; }
 
         #endregion
 

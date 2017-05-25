@@ -32,9 +32,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=10.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\Djoola.Online\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization.Formatters.Soap" />
@@ -46,9 +43,10 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Serialization\IDeserialize.cs" />
+    <Compile Include="Serialization\IDeserializeXml.cs" />
     <Compile Include="Serialization\ISerializeXmlFragment.cs" />
     <Compile Include="Serialization\ISerialize.cs" />
-    <Compile Include="Serialization\ISerializeJson.cs" />
     <Compile Include="Serialization\ISerializeXml.cs" />
     <Compile Include="Serialization\Soap\ISoapEnvelopeContainer.cs" />
     <Compile Include="Serialization\Soap\SoapAttributeBase.cs" />
@@ -74,9 +72,6 @@
     <Compile Include="Serialization\Soap\SoapHeaderAttribute.cs" />
     <Compile Include="Serialization\XSerializeExtension.cs" />
     <Compile Include="XContainerExtension.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
