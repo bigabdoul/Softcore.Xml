@@ -52,7 +52,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns></returns>
         public override string ToString()
         {
-            return string.Format("{0}:{1}", SoapContainer.TargetNamespaceLocalNameDefault, Value);
+            return string.Format("{0}:{1}", SoapContainer.TargetNamespacePrefixDefault, Value);
         }
     }
 }

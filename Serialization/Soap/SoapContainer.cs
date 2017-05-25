@@ -47,14 +47,14 @@ namespace Softcore.Xml.Serialization.Soap
         [SoapIgnore] [XmlIgnore] public static string TargetNamespace = "http://www.w3.org/2003/05/soap-envelope";
 
         /// <summary>
-        /// Gets or sets the default local name for the target namespace (http://www.w3.org/2003/05/soap-envelope) of any SOAP envelope and child elements. The default is 'soap'.
+        /// Gets or sets the default prefix for the target namespace (http://www.w3.org/2003/05/soap-envelope) of any SOAP envelope and child elements. The default is 'soap'.
         /// </summary>
-        [SoapIgnore] [XmlIgnore] public static string TargetNamespaceLocalNameDefault { get; set; } = "soap";
+        [SoapIgnore] [XmlIgnore] public static string TargetNamespacePrefixDefault { get; set; } = "soap";
 
         /// <summary>
         /// Gets or sets the SOAP target namespace attribute prefix (i.e. 'env', 'soap', 'soapenv', etc.). The default is 'soap'.
         /// </summary>
-        [SoapIgnore] [XmlIgnore] public string TargetNamespaceLocalName { get; set; }
+        [SoapIgnore] [XmlIgnore] public string TargetNamespacePrefix { get; set; }
 
         /// <summary>
         /// Gets or sets a value that indicates whether to include the qualified target namespace.
@@ -116,7 +116,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns></returns>
         public virtual string GetTargetNamespacePrefix()
 
-            => string.IsNullOrWhiteSpace(TargetNamespaceLocalName) ? TargetNamespaceLocalNameDefault : TargetNamespaceLocalName.Trim();
+            => string.IsNullOrWhiteSpace(TargetNamespacePrefix) ? TargetNamespacePrefixDefault : TargetNamespacePrefix.Trim();
 
         #region fluent api (chained method calls)
 

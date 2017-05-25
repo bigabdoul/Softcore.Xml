@@ -44,7 +44,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns></returns>
         public override string ToString()
         {
-            var ns = SoapContainer.TargetNamespaceLocalNameDefault;
+            var ns = SoapContainer.TargetNamespacePrefixDefault;
             return string.Format($@"<{ns}:Text xml:lang=""{Lang}"">{Value}</{ns}:Text>");
         }
 
