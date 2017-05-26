@@ -5,11 +5,11 @@ using System.Xml.Serialization;
 namespace Softcore.Xml.Serialization.Soap
 {
     /// <summary>
-    /// Carries error and status information within a SOAP message. This class cannot be inherited.
+    /// Carries error and status information within a SOAP message version 1.2. This class cannot be inherited.
     /// </summary>
     [Serializable]
-    [XmlRoot("Fault", Namespace = "http://www.w3.org/2003/05/soap-envelope")]
-    public sealed class SoapFault : SoapContainer
+    [XmlRoot("Fault", Namespace = SoapVersion12TargetNamespace)]
+    public sealed class SoapFault : SoapFaultBase
     {
         #region constructors
 
@@ -19,7 +19,6 @@ namespace Softcore.Xml.Serialization.Soap
         public SoapFault()
         {
             Reason = new FaultReason();
-            IncludeTargetNamespace = true;
         }
 
         /// <summary>
@@ -73,17 +72,6 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         [XmlElement(Order = 3)] public string Role { get; set; }
 
-        /// <summary>
-        /// Gets or sets additional information required for the <see cref="SoapFault"/>.
-        /// </summary>
-        /// <returns>Additional information required for the <see cref="SoapFault"/>.</returns>
-        /// <remarks>
-        /// This property is decorated with <see cref="XmlIgnoreAttribute"/> because we don't know its type at this moment.
-        /// Therefore, it must be serialized as a separate XML fragment and appended as the last child of the 'Fault' element.
-        /// This is done in the <see cref="SerializeDetail(string)"/> method.
-        /// </remarks>
-        [XmlIgnore] public object Detail { get; set; }
-
         #endregion
 
         #region overridden methods
@@ -91,17 +79,17 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// Serializes this <see cref="SoapFault"/> instance.
         /// </summary>
-        /// <returns>An XML string that represents the current <see cref="SoapHeader"/> instance.</returns>
+        /// <returns>An XML string that represents the current <see cref="SoapFault"/> instance.</returns>
         public override string SerializeXml()
         {
             SetNamespaces();
 
             var soapFaultXml = this.XSerializeFragment(Namespaces);
 
-            if (Detail == null)
-                return soapFaultXml;
+            if (Detail != null)
+                soapFaultXml = SerializeDetail(soapFaultXml);
 
-            return SerializeDetail(soapFaultXml);
+            return soapFaultXml.XStripElementAttributes("Fault", TargetNamespacePrefixDefault);
         }
 
         #endregion
@@ -168,18 +156,25 @@ namespace Softcore.Xml.Serialization.Soap
         #region Parse/TryParse
 
         /// <summary>
-        /// Parses the specified XML document and eventually returns a new instance of the <see cref="SoapFault"/> class.
+        /// Parses the specified XML document and eventually returns a new instance of the <see cref="SoapFaultBase"/> class.
         /// </summary>
         /// <param name="doc">The XML document to parse.</param>
         /// <param name="detailTypes">
         /// An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.
         /// </param>
         /// <returns></returns>
-        public static SoapFault Parse(XDocument doc, Type[] detailTypes = null)
+        public static SoapFaultBase Parse(XDocument doc, Type[] detailTypes = null)
         {
-            if (doc.TryFindXElement("Fault", out XElement element, TargetNamespace))
+            if (IsVersion12)
             {
-                return Parse(element, detailTypes);
+                if (doc.TryFindXElement("Fault", out XElement element, SoapVersion12TargetNamespace))
+                {
+                    return SoapFaultBase.Parse(element, detailTypes);
+                }
+            }
+            else if (doc.TryFindXElement("Fault", out XElement element, SoapVersion11TargetNamespace))
+            {
+                return SoapFaultBase.Parse(element, detailTypes);
             }
 
             return null;
@@ -191,26 +186,9 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="faultElement">The SOAP 'Fault' element to parse.</param>
         /// <param name="detailTypes">An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.</param>
         /// <returns></returns>
-        public static SoapFault Parse(XElement faultElement, Type[] detailTypes = null)
+        public static new SoapFault Parse(XElement faultElement, Type[] detailTypes = null)
         {
-            if (// try to find the 'Detail' of the 'Fault' element
-                faultElement.TryFindXElement("Detail", out var xdetail, TargetNamespace) &&
-
-                // and then parse that element using the specified types, or the default ServerFault type
-                ParseContent(xdetail, detailTypes ?? new[] { typeof(ServerFault) }) is object content
-            )
-            {
-                // 'Detail' element was found and parsed into an object instance; remove it now
-                // so that we can add it as the detail content of the parsed original 'faultElement'
-                xdetail.Remove();
-            }
-            else
-            {
-                // variable must be initialized
-                content = null;
-            }
-
-            return faultElement.ToString().XDeserialize<SoapFault>(true).SetDetail(content);
+            return (SoapFault)SoapFaultBase.Parse(faultElement, detailTypes);
         }
 
         /// <summary>
@@ -228,7 +206,7 @@ namespace Softcore.Xml.Serialization.Soap
 
             try
             {
-                result = Parse(doc, detailTypes);
+                result = (SoapFault)Parse(doc, detailTypes);
             }
             catch
             {
@@ -250,56 +228,13 @@ namespace Softcore.Xml.Serialization.Soap
 
             try
             {
-                result = Parse(faultElement, detailTypes);
+                result = (SoapFault)Parse(faultElement, detailTypes);
             }
             catch
             {
             }
 
             return result != null;
-        }
-
-        #endregion
-
-        #region helpers
-
-        /// <summary>
-        /// Serializes the <see cref="Detail"/> property value as an XML fragment 
-        /// and appends it as the last child of <paramref name="soapFaultXml"/>.
-        /// </summary>
-        /// <param name="soapFaultXml">The serialized <see cref="SoapFault"/> XML fragment.</param>
-        /// <returns></returns>
-        private string SerializeDetail(string soapFaultXml)
-        {
-            var detail = Detail;
-
-            if (detail == null) return soapFaultXml;
-
-            // TODO: figure out a better way to handle the Detail property.
-            // This just looks and feels like a hack: insert the 'Detail' element as the last child of 'Fault'; works at least :-)
-            var ns = Namespaces;
-            var tns = GetTargetNamespacePrefix();
-
-            ParseFragment(soapFaultXml, out XElement elmFault, tns);
-
-            string xmlDetail;
-
-            if (detail is ISerializeXmlFragment serializable)
-            {
-                // maybe it has its own way of serializing?
-                xmlDetail = serializable.SerializeXmlFragment(Namespaces?.ToArray());
-            }
-            else
-            {
-                xmlDetail = detail.XSerializeFragment(Namespaces);
-            }
-
-            var frag = EncloseInElement("Detail", xmlDetail, tns);
-
-            ParseFragment(frag, out XElement elmDetail, tns);
-            elmFault.LastNode.AddAfterSelf(elmDetail);
-
-            return elmFault.ToString();
         }
 
         #endregion

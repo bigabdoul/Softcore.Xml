@@ -48,6 +48,8 @@
     <Compile Include="Serialization\ISerializeXmlFragment.cs" />
     <Compile Include="Serialization\ISerialize.cs" />
     <Compile Include="Serialization\ISerializeXml.cs" />
+    <Compile Include="Serialization\Soap\Fault\SoapFault11.cs" />
+    <Compile Include="Serialization\Soap\Fault\SoapFaultBase.cs" />
     <Compile Include="Serialization\Soap\ISoapEnvelopeContainer.cs" />
     <Compile Include="Serialization\Soap\SoapAttributeBase.cs" />
     <Compile Include="Serialization\Soap\SoapBodyAttribute.cs" />

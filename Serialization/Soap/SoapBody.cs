@@ -44,7 +44,8 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// Gets or sets the SOAP message fault. Can be null provided <see cref="SoapContainer.Content"/> is not null.
         /// </summary>
-        public SoapFault Fault { get; set; }
+        [XmlElement("Fault", Form = System.Xml.Schema.XmlSchemaForm.Qualified)]
+        public SoapFaultBase Fault { get; set; }
 
 
         /// <summary>
@@ -80,7 +81,7 @@ namespace Softcore.Xml.Serialization.Soap
 
             if (content == null && fault == null)
                 throw new ArgumentNullException(nameof(Content), $"{nameof(Content)} and {nameof(Fault)} cannot be null simultaneously.");
-
+            
             var xml = string.Concat(SerializeContents(content), fault?.SerializeXml());
             return EncloseInElement("Body", xml);
         }
@@ -102,7 +103,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <param name="fault">The fault to set.</param>
         /// <returns>A reference to this <see cref="SoapBody"/> instance.</returns>
-        public SoapBody SetFault(SoapFault fault)
+        public SoapBody SetFault(SoapFaultBase fault)
         {
             Fault = fault;
             return this;

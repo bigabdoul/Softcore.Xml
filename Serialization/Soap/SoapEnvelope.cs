@@ -18,14 +18,13 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         public SoapEnvelope()
         {
-            IncludeTargetNamespace = true;
         }
 
         /// <summary>
         /// Initializes an instance of the <see cref="SoapEnvelope"/> class with the specified body.
         /// </summary>
         /// <param name="body">The SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(SoapBody body) : this()
+        public SoapEnvelope(SoapBody body)
         {
             Body = body;
         }
@@ -34,7 +33,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// Initializes an instance of the <see cref="SoapEnvelope"/> class with the specified header.
         /// </summary>
         /// <param name="header">The SOAP message header. Can be null.</param>
-        public SoapEnvelope(SoapHeader header) : this()
+        public SoapEnvelope(SoapHeader header)
         {
             Header = header;
         }
@@ -44,7 +43,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <param name="header">The SOAP message header. Can be null.</param>
         /// <param name="body">The SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(SoapHeader header, SoapBody body) : this()
+        public SoapEnvelope(SoapHeader header, SoapBody body)
         {
             Body = body;
             Header = header;
@@ -54,7 +53,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// Initializes a new instance of the <see cref="SoapEnvelope"/> class with the specified content.
         /// </summary>
         /// <param name="content">The content of the SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(object content) : this()
+        public SoapEnvelope(object content)
         {
             Content = content;
         }
@@ -112,13 +111,12 @@ namespace Softcore.Xml.Serialization.Soap
 
             var enc = SetContentEncoding();
             var soap = GetTargetNamespacePrefix();
-            var tns = IncludeTargetNamespace ? $@" xmlns:{soap}=""{TargetNamespace}""" : string.Empty;
             var xmlDecl = ExcludeXmlDeclaration ? string.Empty : $@"<?xml version=""1.0"" encoding=""{enc}""?>";
 
             SetNamespaces();
 
             return new StringBuilder(xmlDecl)
-                .Append($@"<{soap}:Envelope{tns}{GetNamespaces()}>")
+                .Append($@"<{soap}:Envelope xmlns:{soap}=""{TargetNamespace}""{GetNamespaces()}>")
                 .Append($"{Header?.SerializeXml()}")
                 .Append($"{body.SerializeXml()}")
                 .Append($"</{soap}:Envelope>")

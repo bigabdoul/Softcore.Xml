@@ -42,12 +42,32 @@ namespace Softcore.Xml.Serialization.Soap
         #region non serialized fields and properties
 
         /// <summary>
-        /// The target namespace of the SOAP message specification.
+        /// The target namespace for SOAP version 1.1
         /// </summary>
-        [SoapIgnore] [XmlIgnore] public static string TargetNamespace = "http://www.w3.org/2003/05/soap-envelope";
+        public const string SoapVersion11TargetNamespace = "http://schemas.xmlsoap.org/soap/envelope/";
 
         /// <summary>
-        /// Gets or sets the default prefix for the target namespace (http://www.w3.org/2003/05/soap-envelope) of any SOAP envelope and child elements. The default is 'soap'.
+        /// Indicates the 'encodingStyle' pattern described in the SOAP Version 1.1 specification.
+        /// </summary>
+        public const string SoapVersion11EncodingNamespace = "http://schemas.xmlsoap.org/soap/encoding/";
+
+        /// <summary>
+        /// The target namespace for SOAP version 1.2
+        /// </summary>
+        public const string SoapVersion12TargetNamespace = "http://www.w3.org/2003/05/soap-envelope";
+
+        /// <summary>
+        /// Indicates the 'encodingStyle' pattern described in the SOAP Version 1.2 Part 2: Adjuncts Recommendation.
+        /// </summary>
+        public const string SoapVersion12EncodingNamespace = "http://www.w3.org/2003/05/soap-encoding";
+
+        /// <summary>
+        /// The target namespace of the SOAP message specification. The default is the target namespace for SOAP version 1.2.
+        /// </summary>
+        [SoapIgnore] [XmlIgnore] public static string TargetNamespace = SoapVersion12TargetNamespace;
+
+        /// <summary>
+        /// Gets or sets the default prefix for the target namespace of any SOAP envelope and child elements. The default is 'soap'.
         /// </summary>
         [SoapIgnore] [XmlIgnore] public static string TargetNamespacePrefixDefault { get; set; } = "soap";
 
@@ -57,15 +77,37 @@ namespace Softcore.Xml.Serialization.Soap
         [SoapIgnore] [XmlIgnore] public string TargetNamespacePrefix { get; set; }
 
         /// <summary>
-        /// Gets or sets a value that indicates whether to include the qualified target namespace.
-        /// </summary>
-        [SoapIgnore] [XmlIgnore] public bool IncludeTargetNamespace { get; set; }
-
-        /// <summary>
         /// Gets or sets the contents of the SOAP message header or body. Can be null (header only), 
         /// of type <see cref="ISerializeXmlFragment"/>, a collection of objects, or a single object.
         /// </summary>
         [SoapIgnore] [XmlIgnore] public virtual object Content { get; set; }
+
+        /// <summary>
+        /// Returns the SOAP version based on the <see cref="TargetNamespace"/> property value.
+        /// </summary>
+        /// <exception cref="NotSupportedException">Unknown SOAP target namespace.</exception>
+        public static string SoapVersion
+        {
+            get
+            {
+                if (TargetNamespace == SoapVersion11TargetNamespace)
+                    return "1.1";
+                if (TargetNamespace == SoapVersion12TargetNamespace)
+                    return "1.2";
+
+                throw new NotSupportedException($"Unknown SOAP target namesapce '{TargetNamespace}'. Target namespace must be either '{SoapVersion11TargetNamespace}' (for version 1.1) or '{SoapVersion12TargetNamespace}' (for version 1.2).");
+            }
+        }
+
+        /// <summary>
+        /// Returns a value that indicates whether the current <see cref="TargetNamespace"/> points to the version 1.1 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// </summary>
+        public static bool IsVersion11 { get => SoapVersion == "1.1"; }
+
+        /// <summary>
+        /// Returns a value that indicates whether the current <see cref="TargetNamespace"/> points to the version 1.2 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// </summary>
+        public static bool IsVersion12 { get => SoapVersion == "1.2"; }
 
         #endregion
 
@@ -74,31 +116,41 @@ namespace Softcore.Xml.Serialization.Soap
         #region overridden
 
         /// <summary>
-        /// Adds the target XML namespace for SOAP and the specified array of <see cref="XmlQualifiedName"/> 
-        /// objects to the namespaces referenced by the current <see cref="SoapContainer"/> instance.
-        /// </summary>
-        /// <param name="args">A one-dimensional array of <see cref="XmlQualifiedName"/> objects.</param>
-        public override void SetNamespaces(params XmlQualifiedName[] args)
-        {
-            if (IncludeTargetNamespace)
-                base.SetNamespaces(MergeNamespaces(new XmlQualifiedName(GetTargetNamespacePrefix(), TargetNamespace), args));
-            else
-                base.SetNamespaces(args);
-        }
-
-        /// <summary>
         /// Serializes this <see cref="SoapContainer"/> instance as an XML fragment rather than a full-fledged XML document.
         /// </summary>
         /// <returns></returns>
         public override string SerializeXml()
         {
-            return XSerializeExtension.XSerializeFragment(this, Namespaces);
-            //return this.XSerializeFragment(Namespaces);
+            return this.XSerializeFragment(Namespaces);
         }
 
         #endregion
 
         #region public
+
+        /// <summary>
+        /// Filters the elements of the <see cref="Content"/> property value (assuming it's a collection) based on a specified type.
+        /// </summary>
+        /// <typeparam name="TContent">The type to filter the elements of the sequence on.</typeparam>
+        /// <returns>
+        /// A <see cref="IEnumerable{TContent}"/> that contains elements from the <see cref="Content"/> sequence of type <typeparamref name="TContent"/>.
+        /// </returns>
+        public virtual IEnumerable<TContent> SelectContent<TContent>()
+        {
+            if (Content is IEnumerable collection)
+            {
+                return collection.OfType<TContent>();
+            }
+
+            try
+            {
+                return new[] { (TContent)Content };
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
 
         /// <summary>
         /// Casts the <see cref="Content"/> property value to the specified <typeparamref name="TContent"/> type.
@@ -107,11 +159,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns></returns>
         public virtual TContent GetContent<TContent>()
         {
-            return (TContent)Content;
+            if (SelectContent<TContent>() is IEnumerable<TContent> contents)
+            {
+                return contents.FirstOrDefault();
+            }
+            return default(TContent);
         }
 
         /// <summary>
-        /// Returns the default prefix of the target namespace (http://www.w3.org/2003/05/soap-envelope) for the SOAP envelope.
+        /// Returns the default prefix of the target namespace for this <see cref="SoapContainer"/>.
         /// </summary>
         /// <returns></returns>
         public virtual string GetTargetNamespacePrefix()
@@ -147,6 +203,33 @@ namespace Softcore.Xml.Serialization.Soap
         {
             SetNamespaces(args);
             return (TContainer)this;
+        }
+
+        /// <summary>
+        /// Adds an array of <see cref="XmlQualifiedName"/> objects to the namespaces used by the current instance.
+        /// This ensures that the <see cref="TargetNamespace"/> property value is not present in the given array.
+        /// </summary>
+        /// <param name="args">A one-dimensional array of <see cref="XmlQualifiedName"/> objects.</param>
+        public override void SetNamespaces(params XmlQualifiedName[] args)
+        {
+            if (args == null || args.Length == 0)
+            {
+                return;
+            }
+
+            var list = args.ToList();
+
+            // remove duplicate target namespace
+            for (int i = list.Count - 1; i > -1; i--)
+            {
+                var n = list[i];
+                if (string.Equals(n.Namespace, TargetNamespace, StringComparison.Ordinal))
+                {
+                    list.RemoveAt(i);
+                }
+            }
+
+            base.SetNamespaces(list.ToArray());
         }
 
         #endregion
@@ -261,7 +344,7 @@ namespace Softcore.Xml.Serialization.Soap
 
                 foreach (var type in types)
                 {
-                    if (elm.ToString().XDeserialize(type, false) is object content)
+                    if (xml.XDeserialize(type, false) is object content)
                     {
                         list.Add(content);
                         break; // exit loop if one type has been deserialized for this element?

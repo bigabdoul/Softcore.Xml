@@ -47,7 +47,6 @@ namespace Softcore.Xml.Serialization
         {
             get => (_attributes ?? (_attributes = new Dictionary<string, string>()));
         }
-
         Dictionary<string, string> _attributes;
 
         #endregion

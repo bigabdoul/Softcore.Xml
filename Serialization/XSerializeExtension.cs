@@ -388,10 +388,16 @@ namespace Softcore.Xml.Serialization
         /// <param name="elementName">The name of the XML element from which to remove the attributes.</param>
         /// <param name="nsPrefix">An optional namespace prefix.</param>
         /// <returns>A string.</returns>
-        public static string XStripElementAttributes(this string xml, string elementName, string nsPrefix = null) =>
-            Regex
-            .Replace(xml, $@"\<{nsPrefix}{elementName}>\b([^>]+?)\s?\/?\>", $"<{elementName}>")
-            .Replace($"</{nsPrefix}{elementName}>", $"</{elementName}>");
+        public static string XStripElementAttributes(this string xml, string elementName, string nsPrefix = null)
+        {
+            if (!string.IsNullOrWhiteSpace(nsPrefix) && !nsPrefix.EndsWith(":"))
+            {
+                nsPrefix += ":";
+            }
+
+            return Regex.Replace(xml, $@"\</?{nsPrefix}{elementName}\b([^>]+?)\s?\/?\>", $"<{nsPrefix}{elementName}>",
+                RegexOptions.Compiled | RegexOptions.Multiline);
+        }
 
         #endregion
 
