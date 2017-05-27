@@ -50,7 +50,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <remarks>
         /// This property is decorated with <see cref="XmlIgnoreAttribute"/> because we don't know its type at this moment.
         /// Therefore, it must be serialized as a separate XML fragment and appended as the last child of the 'Fault' element.
-        /// This is done in the <see cref="SoapFaultBase.SerializeDetail(string)"/> method.
+        /// This is done in the <see cref="SoapFaultBase.SerializeDetail(string, bool)"/> method.
         /// </remarks>
         [XmlElement("detail", Order = 3, Form = XmlSchemaForm.Unqualified)]
         public override object Detail { get; set; }
