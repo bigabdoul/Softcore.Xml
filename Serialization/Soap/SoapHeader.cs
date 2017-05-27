@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace Softcore.Xml.Serialization.Soap
@@ -46,10 +44,11 @@ namespace Softcore.Xml.Serialization.Soap
         /// true to throw <see cref="InvalidOperationException"/> if the document doesn't contain 
         /// a SOAP header element; false to ignore missing body. The default value is false.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns>An initialized instance of <see cref="SoapHeader"/>, or null.</returns>
-        public static SoapHeader Parse<TContent>(XDocument doc, bool throwIfHeaderMissing = false) where TContent : class, new()
+        public static SoapHeader Parse<TContent>(XDocument doc, bool throwIfHeaderMissing = false, string targetNamespace = null) where TContent : class, new()
             
-            => Parse(doc, new[] { typeof(TContent) }, throwIfHeaderMissing);
+            => Parse(doc, new[] { typeof(TContent) }, throwIfHeaderMissing, targetNamespace);
 
         /// <summary>
         /// Parses the specified XML document to an instance of <see cref="SoapBody"/> by parsing only the SOAP envelope header.
@@ -60,12 +59,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// true to throw <see cref="InvalidOperationException"/> if the document doesn't contain 
         /// a SOAP header element; false to ignore missing header. The default value is false.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns>An initialized instance of <see cref="SoapHeader"/>, or null.</returns>
-        public static SoapHeader Parse(XDocument doc, Type[] types, bool throwIfHeaderMissing = false)
+        public static SoapHeader Parse(XDocument doc, Type[] types, bool throwIfHeaderMissing = false, string targetNamespace = null)
         {
-            if (doc.TryFindXElement("Header", out var element, DefaultTargetNamespace) && ParseContent(element, types) is object content)
+            targetNamespace = targetNamespace ?? DefaultTargetNamespace;
+
+            if (doc.TryFindXElement("Header", out var element, targetNamespace) && ParseContent(element, types) is object content)
             {
-                return new SoapHeader(content);
+                return new SoapHeader(content) { TargetNamespace = targetNamespace };
             }
 
             if (throwIfHeaderMissing)

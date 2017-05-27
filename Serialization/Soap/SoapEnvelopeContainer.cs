@@ -86,7 +86,7 @@ namespace Softcore.Xml.Serialization.Soap
             {
                 _envelope = null;
 
-                if (SoapEnvelope.Parse(xml, part => GetTypesHintForPart(part)) is SoapEnvelope env)
+                if (SoapEnvelope.Parse(xml, part => GetTypesHintForPart(part), TargetNamespace) is SoapEnvelope env)
                 {
                     _envelope = env;
 

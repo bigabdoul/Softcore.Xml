@@ -312,15 +312,16 @@ namespace Softcore.Xml.Serialization.Soap
         /// The first argument (bool) indicates whether it's the header being parsed (true) or not (false), and the return
         /// value is an array of types that are suitable for deserialization of each content part element (header or body).
         /// </param>
+        /// <param name="targetNamespace"></param>
         /// <returns></returns>
-        public static SoapEnvelope Parse(string xml, Func<SoapEnvelopePart, Type[]> typesHint)
+        public static SoapEnvelope Parse(string xml, Func<SoapEnvelopePart, Type[]> typesHint, string targetNamespace = null)
         {
             var doc = xml.XParseDocument();
 
             return new SoapEnvelope
             {
-                Body = SoapBody.Parse(doc, typesHint(SoapEnvelopePart.Body), typesHint(SoapEnvelopePart.Fault)),
-                Header = SoapHeader.Parse(doc, typesHint(SoapEnvelopePart.Header)),
+                Body = SoapBody.Parse(doc, typesHint(SoapEnvelopePart.Body), typesHint(SoapEnvelopePart.Fault), targetNamespace: targetNamespace),
+                Header = SoapHeader.Parse(doc, typesHint(SoapEnvelopePart.Header), targetNamespace: targetNamespace),
             };
         }
 
