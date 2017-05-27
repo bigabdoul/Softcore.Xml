@@ -387,16 +387,26 @@ namespace Softcore.Xml.Serialization
         /// <param name="xml">The XML string that contains the element.</param>
         /// <param name="elementName">The name of the XML element from which to remove the attributes.</param>
         /// <param name="nsPrefix">An optional namespace prefix.</param>
+        /// <param name="removeNsPrefix">true to remove the namespace prefix <paramref name="nsPrefix"/> from the output.</param>
         /// <returns>A string.</returns>
-        public static string XStripElementAttributes(this string xml, string elementName, string nsPrefix = null)
+        public static string XStripElementAttributes(this string xml, string elementName, string nsPrefix = null, bool removeNsPrefix = false)
         {
-            if (!string.IsNullOrWhiteSpace(nsPrefix) && !nsPrefix.EndsWith(":"))
+            const RegexOptions OPTIONS = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
+            var hasPrefix = !string.IsNullOrWhiteSpace(nsPrefix);
+
+            if (hasPrefix && !nsPrefix.EndsWith(":"))
             {
                 nsPrefix += ":";
             }
 
-            return Regex.Replace(xml, $@"\</?{nsPrefix}{elementName}\b([^>]+?)\s?\/?\>", $"<{nsPrefix}{elementName}>",
-                RegexOptions.Compiled | RegexOptions.Multiline);
+            var result = Regex.Replace(xml, $@"\<(?<end>/)?{nsPrefix}{elementName}\b([^>]+?)\s?\/?\>", $"<$1{nsPrefix}{elementName}>", OPTIONS);
+
+            if (hasPrefix & removeNsPrefix)
+            {
+                result = Regex.Replace(result, $@"\<(?<end>/)?{nsPrefix}{elementName}>", $"<$1{elementName}>", OPTIONS);
+            }
+
+            return result;
         }
 
         #endregion
