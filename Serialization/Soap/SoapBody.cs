@@ -122,9 +122,10 @@ namespace Softcore.Xml.Serialization.Soap
         /// true to throw <see cref="InvalidOperationException"/> if the document doesn't contain a SOAP body element;
         /// false to ignore missing body. The default value is true.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns>An initialized instance of <see cref="SoapBody"/>.</returns>
         /// <exception cref="InvalidOperationException">The specified XML must contain a SOAP envelope body.</exception>
-        public static SoapBody Parse<TContent>(XDocument doc, Type[] faultTypes = null, bool throwIfMissing = true)
+        public static SoapBody Parse<TContent>(XDocument doc, Type[] faultTypes = null, bool throwIfMissing = true, string targetNamespace = null)
             where TContent : class, new()
             
             => Parse(doc, new[] { typeof(TContent) }, faultTypes, throwIfMissing);
@@ -141,19 +142,21 @@ namespace Softcore.Xml.Serialization.Soap
         /// true to throw <see cref="InvalidOperationException"/> if the document doesn't contain a SOAP body element;
         /// false to ignore missing body. The default value is true.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns>An initialized instance of <see cref="SoapBody"/>, or null.</returns>
         /// <exception cref="InvalidOperationException">The specified XML must contain a SOAP envelope body.</exception>
-        public static SoapBody Parse(XDocument doc, Type[] bodyTypes, Type[] faultDetailTypes = null, bool throwIfMissing = true)
+        public static SoapBody Parse(XDocument doc, Type[] bodyTypes, Type[] faultDetailTypes = null, bool throwIfMissing = true, string targetNamespace = null)
         {
+            targetNamespace = targetNamespace ?? DefaultTargetNamespace;
             // get the body, for sure
-            if (doc.TryFindXElement("Body", out var element, TargetNamespace))
+            if (doc.TryFindXElement("Body", out var element, targetNamespace))
             {
                 var content = ParseContent(element, bodyTypes);
-                var fault = SoapFault.Parse(doc, faultDetailTypes);
+                var fault = SoapFault.Parse(doc, faultDetailTypes, targetNamespace);
 
                 if (content != null || fault != null)
                 {
-                    return new SoapBody(content).SetFault(fault);
+                    return new SoapBody(content) { TargetNamespace = targetNamespace }.SetFault(fault);
                 }
             }
 

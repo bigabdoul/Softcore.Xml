@@ -63,7 +63,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns>An initialized instance of <see cref="SoapHeader"/>, or null.</returns>
         public static SoapHeader Parse(XDocument doc, Type[] types, bool throwIfHeaderMissing = false)
         {
-            if (doc.TryFindXElement("Header", out var element, TargetNamespace) && ParseContent(element, types) is object content)
+            if (doc.TryFindXElement("Header", out var element, DefaultTargetNamespace) && ParseContent(element, types) is object content)
             {
                 return new SoapHeader(content);
             }

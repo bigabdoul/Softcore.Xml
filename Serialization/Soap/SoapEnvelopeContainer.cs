@@ -63,7 +63,13 @@ namespace Softcore.Xml.Serialization.Soap
         /// Gets the parsed <see cref="SoapEnvelope"/>.
         /// </summary>
         public virtual SoapEnvelope Envelope => _envelope;
+
         private SoapEnvelope _envelope;
+
+        /// <summary>
+        /// Gets or sets the SOAP target namespace to use when parsing an XML document.
+        /// </summary>
+        public virtual string TargetNamespace { get; set; }
 
         #endregion
 

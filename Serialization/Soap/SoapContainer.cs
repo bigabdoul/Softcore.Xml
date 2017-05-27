@@ -41,6 +41,8 @@ namespace Softcore.Xml.Serialization.Soap
 
         #region non serialized fields and properties
 
+        #region const and static
+
         /// <summary>
         /// The target namespace for SOAP version 1.1
         /// </summary>
@@ -64,12 +66,19 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// The target namespace of the SOAP message specification. The default is the target namespace for SOAP version 1.2.
         /// </summary>
-        [SoapIgnore] [XmlIgnore] public static string TargetNamespace = SoapVersion12TargetNamespace;
+        [SoapIgnore] [XmlIgnore] public static string DefaultTargetNamespace = SoapVersion12TargetNamespace;
 
         /// <summary>
         /// Gets or sets the default prefix for the target namespace of any SOAP envelope and child elements. The default is 'soap'.
         /// </summary>
         [SoapIgnore] [XmlIgnore] public static string TargetNamespacePrefixDefault { get; set; } = "soap";
+
+        #endregion
+
+        /// <summary>
+        /// Gets or sets the target namespace to use when deserializing an XML document.
+        /// </summary>
+        public string TargetNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets the SOAP target namespace attribute prefix (i.e. 'env', 'soap', 'soapenv', etc.). The default is 'soap'.
@@ -83,29 +92,24 @@ namespace Softcore.Xml.Serialization.Soap
         [SoapIgnore] [XmlIgnore] public virtual object Content { get; set; }
 
         /// <summary>
-        /// Returns the SOAP version based on the <see cref="TargetNamespace"/> property value.
+        /// Returns the SOAP version based on the <see cref="DefaultTargetNamespace"/> property value.
         /// </summary>
         /// <exception cref="NotSupportedException">Unknown SOAP target namespace.</exception>
         public static string SoapVersion
         {
             get
             {
-                if (TargetNamespace == SoapVersion11TargetNamespace)
-                    return "1.1";
-                if (TargetNamespace == SoapVersion12TargetNamespace)
-                    return "1.2";
-
-                throw new NotSupportedException($"Unknown SOAP target namesapce '{TargetNamespace}'. Target namespace must be either '{SoapVersion11TargetNamespace}' (for version 1.1) or '{SoapVersion12TargetNamespace}' (for version 1.2).");
+                return GetVersion(DefaultTargetNamespace);
             }
         }
 
         /// <summary>
-        /// Returns a value that indicates whether the current <see cref="TargetNamespace"/> points to the version 1.1 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// Returns a value that indicates whether the current <see cref="DefaultTargetNamespace"/> points to the version 1.1 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
         /// </summary>
         public static bool IsVersion11 { get => SoapVersion == "1.1"; }
 
         /// <summary>
-        /// Returns a value that indicates whether the current <see cref="TargetNamespace"/> points to the version 1.2 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// Returns a value that indicates whether the current <see cref="DefaultTargetNamespace"/> points to the version 1.2 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
         /// </summary>
         public static bool IsVersion12 { get => SoapVersion == "1.2"; }
 
@@ -167,6 +171,14 @@ namespace Softcore.Xml.Serialization.Soap
         }
 
         /// <summary>
+        /// Returns the target namespace to use when serializing an object or deserializing an XML document.
+        /// </summary>
+        /// <returns></returns>
+        public virtual string GetTargetNamespace()
+
+            => string.IsNullOrWhiteSpace(TargetNamespace) ? DefaultTargetNamespace : TargetNamespace.Trim();
+
+        /// <summary>
         /// Returns the default prefix of the target namespace for this <see cref="SoapContainer"/>.
         /// </summary>
         /// <returns></returns>
@@ -223,13 +235,55 @@ namespace Softcore.Xml.Serialization.Soap
             for (int i = list.Count - 1; i > -1; i--)
             {
                 var n = list[i];
-                if (string.Equals(n.Namespace, TargetNamespace, StringComparison.Ordinal))
+                if (string.Equals(n.Namespace, GetTargetNamespace(), StringComparison.Ordinal))
                 {
                     list.RemoveAt(i);
                 }
             }
 
             base.SetNamespaces(list.ToArray());
+        }
+
+        #endregion
+
+        #region static
+
+        /// <summary>
+        /// Returns the SOAP version based on the specified <paramref name="targetNamespace"/> argument.
+        /// </summary>
+        /// <param name="targetNamespace">The SOAP target namespace for which to determine the version. If null, the <see cref="DefaultTargetNamespace"/> property value is used.</param>
+        /// <returns>A string that represents the version of the SOAP target namespace.</returns>
+        /// <exception cref="NotSupportedException">Unknown SOAP target namespace.</exception>
+        public static string GetVersion(string targetNamespace = null)
+        {
+            targetNamespace = targetNamespace ?? DefaultTargetNamespace;
+
+            if (targetNamespace == SoapVersion11TargetNamespace)
+                return "1.1";
+            if (targetNamespace == SoapVersion12TargetNamespace)
+                return "1.2";
+
+            throw new NotSupportedException($"Unknown SOAP target namespace '{targetNamespace}'. Target namespace must be either '{SoapVersion11TargetNamespace}' (for version 1.1) or '{SoapVersion12TargetNamespace}' (for version 1.2).");
+        }
+
+        /// <summary>
+        /// Returns a value that indicates whether the specified <paramref name="targetNamespace"/> points to the version 1.1 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// </summary>
+        /// <param name="targetNamespace">The SOAP target namespace for which to determine the version. If null, the <see cref="DefaultTargetNamespace"/> property value is used.</param>
+        /// <returns></returns>
+        public static bool IsProtocolVersion11(string targetNamespace = null)
+        {
+            return GetVersion(targetNamespace) == "1.2";
+        }
+
+        /// <summary>
+        /// Returns a value that indicates whether the specified <paramref name="targetNamespace"/> points to the version 1.2 of the SOAP specification. A <see cref="NotSupportedException"/> is thrown if the version is neither 1.1 nor 1.2.
+        /// </summary>
+        /// <param name="targetNamespace">The SOAP target namespace for which to determine the version. If null, the <see cref="DefaultTargetNamespace"/> property value is used.</param>
+        /// <returns></returns>
+        public static bool IsProtocolVersion12(string targetNamespace = null)
+        {
+            return GetVersion(targetNamespace) == "1.2";
         }
 
         #endregion
@@ -265,7 +319,7 @@ namespace Softcore.Xml.Serialization.Soap
             const string doc = "document";
 
             tns = tns ?? GetTargetNamespacePrefix();
-            xml = $@"<?xml version=""1.0""?><{doc} xmlns:{tns}=""{TargetNamespace}"">{xml}</{doc}>";
+            xml = $@"<?xml version=""1.0""?><{doc} xmlns:{tns}=""{GetTargetNamespace()}"">{xml}</{doc}>";
 
             var xdoc = XDocument.Parse(xml, LoadOptions.None);
 

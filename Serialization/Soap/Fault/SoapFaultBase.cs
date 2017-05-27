@@ -33,10 +33,13 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <param name="faultElement">The SOAP 'Fault' element to parse.</param>
         /// <param name="detailTypes">An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>        
-        public static SoapFaultBase Parse(XElement faultElement, Type[] detailTypes = null)
+        public static SoapFaultBase Parse(XElement faultElement, Type[] detailTypes = null, string targetNamespace = null)
         {
-            var version12 = IsVersion12;
+            targetNamespace = targetNamespace ?? DefaultTargetNamespace;
+
+            var version12 = IsProtocolVersion12(targetNamespace);
             string tns, elementName;
 
             if (version12)
@@ -67,12 +70,19 @@ namespace Softcore.Xml.Serialization.Soap
                 content = null;
             }
 
+            SoapFaultBase sfb;
+
             if (version12)
             {
-                return faultElement.ToString().XDeserialize<SoapFault>(true).SetDetail(content);
+                sfb = faultElement.ToString().XDeserialize<SoapFault>(true).SetDetail(content);
+            }
+            else
+            {
+                sfb = faultElement.ToString().XDeserialize<SoapFault11>(true).SetDetail(content);
             }
 
-            return faultElement.ToString().XDeserialize<SoapFault11>(true).SetDetail(content);
+            sfb.TargetNamespace = targetNamespace;
+            return sfb;
         }
 
         #region helpers
@@ -139,7 +149,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="args">A one-dimensional array of <see cref="XmlQualifiedName"/> objects.</param>
         public override void SetNamespaces(params XmlQualifiedName[] args)
         {
-            base.SetNamespaces(MergeNamespaces(new XmlQualifiedName(TargetNamespacePrefixDefault, TargetNamespace), args));
+            base.SetNamespaces(MergeNamespaces(new XmlQualifiedName(TargetNamespacePrefixDefault, GetTargetNamespace()), args));
         }
 
         #endregion

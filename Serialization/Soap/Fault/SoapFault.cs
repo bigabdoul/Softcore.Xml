@@ -162,10 +162,11 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="detailTypes">
         /// An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>
-        public static SoapFaultBase Parse(XDocument doc, Type[] detailTypes = null)
+        public static SoapFaultBase Parse(XDocument doc, Type[] detailTypes = null, string targetNamespace = null)
         {
-            if (IsVersion12)
+            if (IsProtocolVersion12(targetNamespace))
             {
                 if (doc.TryFindXElement("Fault", out XElement element, SoapVersion12TargetNamespace))
                 {
@@ -185,10 +186,11 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <param name="faultElement">The SOAP 'Fault' element to parse.</param>
         /// <param name="detailTypes">An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>
-        public static new SoapFault Parse(XElement faultElement, Type[] detailTypes = null)
+        public static new SoapFault Parse(XElement faultElement, Type[] detailTypes = null, string targetNamespace = null)
         {
-            return (SoapFault)SoapFaultBase.Parse(faultElement, detailTypes);
+            return (SoapFault)SoapFaultBase.Parse(faultElement, detailTypes, targetNamespace);
         }
 
         /// <summary>
@@ -199,14 +201,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="detailTypes">
         /// An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>
-        public static bool TryParse(XDocument doc, out SoapFault result, Type[] detailTypes = null)
+        public static bool TryParse(XDocument doc, out SoapFault result, Type[] detailTypes = null, string targetNamespace = null)
         {
             result = null;
 
             try
             {
-                result = (SoapFault)Parse(doc, detailTypes);
+                result = (SoapFault)Parse(doc, detailTypes, targetNamespace);
             }
             catch
             {
@@ -221,14 +224,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="faultElement">The SOAP 'Fault' element to parse.</param>
         /// <param name="result">If the operation succeeds, returns a new instance of <see cref="SoapFault"/>.</param>
         /// <param name="detailTypes">An array of types that can be deserialized as the 'Detail' child element of the 'Fault' element. Can be null.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>
-        public static bool TryParse(XElement faultElement, out SoapFault result, Type[] detailTypes = null)
+        public static bool TryParse(XElement faultElement, out SoapFault result, Type[] detailTypes = null, string targetNamespace = null)
         {
             result = null;
 
             try
             {
-                result = (SoapFault)Parse(faultElement, detailTypes);
+                result = Parse(faultElement, detailTypes, targetNamespace);
             }
             catch
             {

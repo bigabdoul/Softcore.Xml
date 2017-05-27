@@ -116,7 +116,7 @@ namespace Softcore.Xml.Serialization.Soap
             SetNamespaces();
 
             return new StringBuilder(xmlDecl)
-                .Append($@"<{soap}:Envelope xmlns:{soap}=""{TargetNamespace}""{GetNamespaces()}>")
+                .Append($@"<{soap}:Envelope xmlns:{soap}=""{GetTargetNamespace()}""{GetNamespaces()}>")
                 .Append($"{Header?.SerializeXml()}")
                 .Append($"{body.SerializeXml()}")
                 .Append($"</{soap}:Envelope>")

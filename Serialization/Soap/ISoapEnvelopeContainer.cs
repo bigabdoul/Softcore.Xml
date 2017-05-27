@@ -14,5 +14,10 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="xml">A string that contains SOAP-XML.</param>
         /// <returns>true if the specified XML document has been parsed; otherwise, false.</returns>
         bool TryParse(string xml);
+
+        /// <summary>
+        /// Gets or sets the SOAP target namespace to use when parsing an XML document.
+        /// </summary>
+        string TargetNamespace { get; set; }
     }
 }
