@@ -78,7 +78,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <summary>
         /// Gets or sets the target namespace to use when deserializing an XML document.
         /// </summary>
-        public string TargetNamespace { get; set; }
+        [SoapIgnore] [XmlIgnore] public string TargetNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets the SOAP target namespace attribute prefix (i.e. 'env', 'soap', 'soapenv', etc.). The default is 'soap'.
