@@ -92,8 +92,9 @@ namespace Softcore.Xml.Serialization.Soap
         /// and appends it as the last child of <paramref name="soapFaultXml"/>.
         /// </summary>
         /// <param name="soapFaultXml">The serialized <see cref="SoapFault"/> XML fragment.</param>
+        /// <param name="version11">true if to serialize the detail element as SOAP 1.1; false to use SOAP 1.2.</param>
         /// <returns></returns>
-        protected virtual string SerializeDetail(string soapFaultXml)
+        protected virtual string SerializeDetail(string soapFaultXml, bool version11 = false)
         {
             var detail = Detail;
 
@@ -118,12 +119,13 @@ namespace Softcore.Xml.Serialization.Soap
                 xmlDetail = detail.XSerializeFragment(enc: Encoding);
             }
 
-            var frag = EncloseInElement(IsVersion12 ? "Detail" : "detail", xmlDetail, tns);
+            var detailElement= version11 ? "detail" : "Detail";
+            var frag = EncloseInElement(detailElement, xmlDetail, tns);
 
             ParseFragment(frag, out XElement elmDetail, tns);
             elmFault.LastNode.AddAfterSelf(elmDetail);
 
-            return elmFault.ToString();
+            return elmFault.ToString().XStripElementAttributes(detailElement, tns, removeNsPrefix: version11);
         }
 
         /// <summary>
