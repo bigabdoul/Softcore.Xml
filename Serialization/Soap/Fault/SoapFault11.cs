@@ -10,7 +10,7 @@ namespace Softcore.Xml.Serialization.Soap
     /// Carries error and status information within a SOAP message version 1.2. This class cannot be inherited.
     /// </summary>
     [Serializable]
-    [XmlRoot("Fault")]
+    [XmlRoot("Fault", Namespace = SoapVersion11TargetNamespace)]
     public sealed class SoapFault11 : SoapFaultBase
     {
         #region constructors
@@ -69,12 +69,12 @@ namespace Softcore.Xml.Serialization.Soap
             var detail = Detail;
             Detail = null;
 
-            var soapFaultXml = this.XSerializeFragment();
+            var soapFaultXml = this.XSerializeFragment(Namespaces);
 
             if (detail != null)
             {
                 Detail = detail; // reset and perform separate serialization for the detail object
-                soapFaultXml = SerializeDetail(soapFaultXml, true);
+                soapFaultXml = SerializeDetail(soapFaultXml);
             }
 
             return soapFaultXml.XStripElementAttributes("Fault", TargetNamespacePrefixDefault);
