@@ -117,36 +117,37 @@ namespace MyNamespace.Tests
             };
 
             // don't forget your default soap target namespace
-            SoapContainer.TargetNamespace = "http://schemas.xmlsoap.org/soap/envelope/";
+            var tns = SoapContainer.TargetNamespace = SoapContainer.SoapVersion11TargetNamespace;
 
             // ACT
 
             // method 1: simplest one might think but it's not gonna work
             var storeInfoResponse1 = xml.XDeserialize<StoreInformationResponse>();
 
-            // should be null because the XML serializer cannot simply deserialize the SOAP file into the business model
-            Assert.IsNull(storeInfoResponse1);
-
             // method 2: more complex and also much more flexible
             // parse the xml and expect only type 'StoreInformationResponse' in the 'Body' element
             var env = SoapEnvelope.Parse(xml, get_types);
-            var storeInfoResponse2 = env.Body.GetContent<StoreInformationResponse>();
+            var response = env.Body.GetContent<StoreInformationResponse>();
 
             // ASSERT
 
-            Assert.IsNotNull(storeInfoResponse2);
-            Assert.IsNotNull(storeInfoResponse2.StoreInformation);
+            // should be null because the XML serializer cannot simply deserialize the stuff without much more info
+            Assert.IsNull(storeInfoResponse1);
 
-            Assert.AreEqual(storeInfoResponse2.StoreInformation.StoreID, 99612);
-            Assert.AreEqual(storeInfoResponse2.StoreInformation.BusinessDate, new DateTime(2016,1,28));
+            Assert.IsNotNull(response);
+            Assert.IsNotNull(response.StoreInformation);
 
-            Assert.IsNotNull(storeInfoResponse2.StoreInformation.Address);
-            Assert.AreEqual(storeInfoResponse2.StoreInformation.Address.City, "Milano");
-            Assert.AreEqual(storeInfoResponse2.StoreInformation.Address.Street, "Via Roma 1");
-            Assert.AreEqual(storeInfoResponse2.StoreInformation.Address.Type, "Address-US");
+            Assert.AreEqual(response.StoreInformation.StoreID, 99612);
+            Assert.AreEqual(response.StoreInformation.BusinessDate, new DateTime(2016,1,28));
 
-            // if your StoreInformationResponse class inherits Softcore.Xml.Serialization.Soap.SoapContainer, you can do the following:
-            if (storeInfoResponse2 is SoapContainer container)
+            Assert.IsNotNull(response.StoreInformation.Address);
+            Assert.AreEqual(response.StoreInformation.Address.City, "Milano");
+            Assert.AreEqual(response.StoreInformation.Address.Street, "Via Roma 1");
+            Assert.AreEqual(response.StoreInformation.Address.Type, "Address-US");
+
+            // What follows after assertions is just for the demo and shouldn't be in this test method.
+            // If your StoreInformationResponse class inherits Softcore.Xml.Serialization.Soap.SoapContainer, you can do the following:
+            if (response is SoapContainer container)
             {
                // serialize just your business object
                 Debug.WriteLine(container.SerializeXml());
@@ -158,22 +159,25 @@ namespace MyNamespace.Tests
             // now output the envelope with your local target namespace
             //env = SoapEnvelope.Create(storeInfoResponse2); // create a new SoapEnvelope or reset the existing
             env.Namespaces = null;
-            env.NamespacesSorted = true; // ignored by the System.Xml.Serialization.XmlSerializer class
             env.ExcludeXmlDeclaration = true;
-            env.IncludeTargetNamespace = false; // already set here below
-            SoapContainer.TargetNamespaceLocalNameDefault = "SOAP-ENV";
+            var prefix = SoapContainer.TargetNamespacePrefixDefault = "SOAP-ENV";
+            var encodingNs = SoapContainer.SoapVersion11EncodingNamespace;
 
             env.SetNamespaces(
                 new XmlQualifiedName("SOAPSDK1", "http://www.w3.org/2001/XMLSchema"),
                 new XmlQualifiedName("SOAPSDK2", "http://www.w3.org/2001/XMLSchema-instance"),
-                new XmlQualifiedName("SOAPSDK3", "http://schemas.xmlsoap.org/soap/encoding/"),
-                new XmlQualifiedName("SOAP-ENV", "http://schemas.xmlsoap.org/soap/envelope/") // this is the SOAP target namespace
+                new XmlQualifiedName("SOAPSDK3", encodingNs),
+
+                // http://schemas.xmlsoap.org/soap/envelope/ is the SOAP target namespace: it will be
+                // removed during serialization because it's already and always present at the envelope level
+                new XmlQualifiedName(prefix, tns)
             );
 
-            env.Body.Attributes["SOAP-ENV:encodingStyle"] = "http://schemas.xmlsoap.org/soap/encoding/";
+            // http://schemas.xmlsoap.org/soap/encoding/
+            env.Body.Attributes[$"{prefix}:encodingStyle"] = encodingNs;
 
-            storeInfoResponse2.Namespaces = null;
-            storeInfoResponse2.SetNamespaces(new XmlQualifiedName("SOAPSDK4", "http://www.example.com/message/"));
+            response.Namespaces = null;
+            response.SetNamespaces(new XmlQualifiedName("SOAPSDK4", "http://www.example.com/message/"));
 
             Debug.WriteLine(env.SerializeXml());
         }
