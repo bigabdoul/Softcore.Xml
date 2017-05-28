@@ -318,6 +318,31 @@ namespace Softcore.Xml.Serialization
         #region Hacks
 
         /// <summary>
+        /// Returns the SOAP target namespace from the specified <paramref name="xml"/>.
+        /// </summary>
+        /// <param name="xml">The XML document that contains SOAP-encoded text.</param>
+        /// <returns></returns>
+        public static string ExtractSoapTargetNamespace(this string xml)
+        {
+            if (xml == null)
+            {
+                return null;
+            }
+
+            const RegexOptions OPTIONS = RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.Multiline;
+            const string PATTERN = @"\<([\w:]+)?Envelope\s+xmlns(:?(?<prefix>[\w]+)?)=""(?<ns>http://schemas.xmlsoap.org/soap/envelope/|http://www.w3.org/2001/06/soap-envelope|http://www.w3.org/2003/05/soap-envelope)""";
+
+            var m = Regex.Match(xml, PATTERN, OPTIONS);
+
+            if (m.Success)
+            {
+                return m.Groups["ns"].Value;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         ///  Creates a new <see cref="XDocument"/> from a string that might not contain an XML declaration.
         /// </summary>
         /// <param name="xml">A string that contains XML.</param>
