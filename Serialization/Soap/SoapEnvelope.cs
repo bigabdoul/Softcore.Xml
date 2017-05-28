@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -18,13 +19,14 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         public SoapEnvelope()
         {
+            NamespacesSorted = true;
         }
 
         /// <summary>
         /// Initializes an instance of the <see cref="SoapEnvelope"/> class with the specified body.
         /// </summary>
         /// <param name="body">The SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(SoapBody body)
+        public SoapEnvelope(SoapBody body) : this()
         {
             Body = body;
         }
@@ -33,7 +35,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// Initializes an instance of the <see cref="SoapEnvelope"/> class with the specified header.
         /// </summary>
         /// <param name="header">The SOAP message header. Can be null.</param>
-        public SoapEnvelope(SoapHeader header)
+        public SoapEnvelope(SoapHeader header) : this()
         {
             Header = header;
         }
@@ -43,7 +45,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <param name="header">The SOAP message header. Can be null.</param>
         /// <param name="body">The SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(SoapHeader header, SoapBody body)
+        public SoapEnvelope(SoapHeader header, SoapBody body) : this()
         {
             Body = body;
             Header = header;
@@ -53,7 +55,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// Initializes a new instance of the <see cref="SoapEnvelope"/> class with the specified content.
         /// </summary>
         /// <param name="content">The content of the SOAP message body. Cannot be null during serialization.</param>
-        public SoapEnvelope(object content)
+        public SoapEnvelope(object content) : this()
         {
             Content = content;
         }
@@ -102,9 +104,7 @@ namespace Softcore.Xml.Serialization.Soap
         /// <exception cref="ArgumentNullException"><see cref="Body"/> is null.</exception>
         public override string SerializeXml()
         {
-            var body = Body;
-
-            if (body == null)
+            if (_body == null)
             {
                 throw new ArgumentNullException(nameof(Body), $"{nameof(Body)} cannot be null.");
             }
@@ -113,12 +113,10 @@ namespace Softcore.Xml.Serialization.Soap
             var soap = GetTargetNamespacePrefix();
             var xmlDecl = ExcludeXmlDeclaration ? string.Empty : $@"<?xml version=""1.0"" encoding=""{enc}""?>";
 
-            SetNamespaces();
-
             return new StringBuilder(xmlDecl)
-                .Append($@"<{soap}:Envelope xmlns:{soap}=""{GetTargetNamespace()}""{GetNamespaces()}>")
+                .Append($@"<{soap}:Envelope{GetNamespacesAndAttributes(soap)}>")
                 .Append($"{Header?.SerializeXml()}")
-                .Append($"{body.SerializeXml()}")
+                .Append($"{_body.SerializeXml()}")
                 .Append($"</{soap}:Envelope>")
                 .ToString();
         }
@@ -231,10 +229,7 @@ namespace Softcore.Xml.Serialization.Soap
             {
                 Header.Encoding = enc;
             }
-            if (Body != null)
-            {
-                Body.Encoding = enc;
-            }
+            Body.Encoding = enc;
             return enc.WebName;
         }
 
@@ -242,28 +237,47 @@ namespace Softcore.Xml.Serialization.Soap
         /// Returns the XML namespaces referenced by this SOAP message envelope.
         /// </summary>
         /// <returns></returns>
-        private string GetNamespaces()
+        private string GetNamespacesAndAttributes(string prefix)
         {
-            if (Namespaces == null || Namespaces.Count == 0) return string.Empty;
-
-            var sb = new StringBuilder(" ");
-
-            foreach (var ns in Namespaces.ToArray())
-                sb.Append(GetName(ns));
-
-            return sb.ToString().TrimEnd();
-
-            // embedded helper function
-            string GetName(XmlQualifiedName n)
+            var list = new List<XmlQualifiedName>
             {
-                string prefix = n.Name, ns = n.Namespace.Replace("\"", "&#34;");
+                new XmlQualifiedName(prefix, GetTargetNamespace())
+            };
 
-                if (string.IsNullOrWhiteSpace(prefix))
+            SetNamespaces();
+
+            if (Namespaces?.ToArray() is XmlQualifiedName[] array && array.Length > 0)
+            {
+                list.AddRange(array);
+            }
+
+            if (NamespacesSorted && list.Count > 1)
+            {
+                list.Sort(NamespaceComparison);
+            }
+
+            var attributes = new Dictionary<string, string>();
+
+            foreach (var ns in list)
+            {
+                Merge(ns.Name, ns.Namespace);
+            }
+
+            MergeAttributes(target: attributes);
+
+            return GetAttributes(attributes);
+
+            void Merge(string name, string ns)
+            {
+                if (string.IsNullOrWhiteSpace(name))
                 {
-                    return $"xmlns=\"{ns}\" ";
+                    name = "xmlns";
                 }
-
-                return $"xmlns:{prefix}=\"{ns}\" ";
+                else
+                {
+                    name = $"xmlns:{name}";
+                }
+                attributes[name] = ns;
             }
         }
 

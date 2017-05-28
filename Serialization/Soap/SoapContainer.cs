@@ -230,12 +230,13 @@ namespace Softcore.Xml.Serialization.Soap
             }
 
             var list = args.ToList();
+            var tns = GetTargetNamespace();
 
             // remove duplicate target namespace
             for (int i = list.Count - 1; i > -1; i--)
             {
                 var n = list[i];
-                if (string.Equals(n.Namespace, GetTargetNamespace(), StringComparison.Ordinal))
+                if (string.Equals(n.Namespace, tns, StringComparison.Ordinal))
                 {
                     list.RemoveAt(i);
                 }

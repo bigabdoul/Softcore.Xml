@@ -151,9 +151,9 @@ namespace Softcore.Xml.Serialization
             => $"{a.Name}{a.Namespace}".CompareTo($"{b.Name}{b.Namespace}");
 
         /// <summary>
-        /// Writes the attributes contained in the <see cref="Attributes"/> dictionary.
+        /// Writes and returns the attributes contained in the <see cref="Attributes"/> dictionary.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A string that contains the attribute names and values contained in the current <see cref="Attributes"/> dictionary.</returns>
         protected virtual string GetAttributes()
         {
             if (_attributes == null)
@@ -161,22 +161,54 @@ namespace Softcore.Xml.Serialization
                 return string.Empty;
             }
 
+            return GetAttributes(_attributes);
+        }
+
+        /// <summary>
+        /// Merges the current <see cref="Attributes"/> dictionary into the <paramref name="target"/> attributes.
+        /// </summary>
+        /// <param name="target">The destination dictionary of the merge operation.</param>
+        protected virtual void MergeAttributes(IDictionary<string, string> target)
+        {
+            MergeAttributes(Attributes, target);
+        }
+
+        #endregion
+
+        #region static methods
+
+        /// <summary>
+        /// Merges <paramref name="source"/> attributes into <paramref name="target"/> attributes.
+        /// </summary>
+        /// <param name="source">The dictionary to merge into the <paramref name="target"/> dictionary.</param>
+        /// <param name="target">The destination dictionary of the merge operation.</param>
+        public static void MergeAttributes(IDictionary<string, string> source, IDictionary<string, string> target)
+        {
+            foreach (var key in source.Keys)
+            {
+                target[key] = source[key];
+            }
+        }
+
+        /// <summary>
+        /// Writes and returns the attributes contained in the specified <paramref name="attributes"/> dictionary.
+        /// </summary>
+        /// <param name="attributes">A collection of attributes to write using an instance of the <see cref="XmlTextWriter"/> class.</param>
+        /// <returns>A string that contains the attribute names and values contained in the specified <paramref name="attributes"/> dictionary.</returns>
+        public static string GetAttributes(IDictionary<string, string> attributes)
+        {
             var sb = new System.Text.StringBuilder();
 
             using (var sr = new System.IO.StringWriter(sb))
             {
                 using (var xw = new XmlTextWriter(sr))
                 {
-                    WriteAttributes(xw, _attributes);
+                    WriteAttributes(xw, attributes);
                 }
             }
 
             return sb.ToString();
         }
-
-        #endregion
-
-        #region static methods
 
         /// <summary>
         /// Writes the attributes contained in the specified <paramref name="attributes"/> dictionary.
