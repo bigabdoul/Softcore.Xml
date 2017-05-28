@@ -128,7 +128,7 @@ namespace Softcore.Xml.Serialization.Soap
         public static SoapBody Parse<TContent>(XDocument doc, Type[] faultTypes = null, bool throwIfMissing = true, string targetNamespace = null)
             where TContent : class, new()
             
-            => Parse(doc, new[] { typeof(TContent) }, faultTypes, throwIfMissing);
+            => Parse(doc, new[] { typeof(TContent) }, faultTypes, throwIfMissing, targetNamespace);
 
         /// <summary>
         /// Parses the specified XML document to an instance of <see cref="SoapBody"/> by parsing only the SOAP envelope body.

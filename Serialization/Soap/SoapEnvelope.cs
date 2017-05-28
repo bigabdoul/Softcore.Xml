@@ -326,16 +326,19 @@ namespace Softcore.Xml.Serialization.Soap
         /// The first argument (bool) indicates whether it's the header being parsed (true) or not (false), and the return
         /// value is an array of types that are suitable for deserialization of each content part element (header or body).
         /// </param>
-        /// <param name="targetNamespace"></param>
+        /// <param name="targetNamespace">The SOAP target namespace to use. If null, the <see cref="SoapContainer.DefaultTargetNamespace"/> property value is used.</param>
         /// <returns></returns>
         public static SoapEnvelope Parse(string xml, Func<SoapEnvelopePart, Type[]> typesHint, string targetNamespace = null)
         {
             var doc = xml.XParseDocument();
 
+            targetNamespace = targetNamespace ?? DefaultTargetNamespace;
+
             return new SoapEnvelope
             {
                 Body = SoapBody.Parse(doc, typesHint(SoapEnvelopePart.Body), typesHint(SoapEnvelopePart.Fault), targetNamespace: targetNamespace),
                 Header = SoapHeader.Parse(doc, typesHint(SoapEnvelopePart.Header), targetNamespace: targetNamespace),
+                TargetNamespace = targetNamespace
             };
         }
 
@@ -344,10 +347,11 @@ namespace Softcore.Xml.Serialization.Soap
         /// </summary>
         /// <typeparam name="TBody">The type of the body content.</typeparam>
         /// <param name="xml">A string that contains SOAP-XML.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use.</param>
         /// <returns></returns>
-        public static SoapEnvelope Parse<TBody>(string xml) where TBody : class, new()
+        public static SoapEnvelope Parse<TBody>(string xml, string targetNamespace = null) where TBody : class, new()
 
-            => new SoapEnvelope { Body = SoapBody.Parse<TBody>(xml.XParseDocument()) };
+            => new SoapEnvelope { Body = SoapBody.Parse<TBody>(xml.XParseDocument(), targetNamespace: targetNamespace), TargetNamespace = targetNamespace };
 
         /// <summary>
         /// Parses the specified XML document to an instance of <see cref="SoapEnvelope"/>.
@@ -355,10 +359,11 @@ namespace Softcore.Xml.Serialization.Soap
         /// <typeparam name="THeader">The type of the header content.</typeparam>
         /// <typeparam name="TBody">The type of the body content.</typeparam>
         /// <param name="xml">A string that contains SOAP-XML.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use.</param>
         /// <returns></returns>
-        public static SoapEnvelope Parse<THeader, TBody>(string xml) where THeader : class, new() where TBody : class, new()
+        public static SoapEnvelope Parse<THeader, TBody>(string xml, string targetNamespace = null) where THeader : class, new() where TBody : class, new()
 
-            => Parse(xml, part => part == SoapEnvelopePart.Header ? new[] { typeof(THeader) } : new[] { typeof(TBody) });
+            => Parse(xml, part => part == SoapEnvelopePart.Header ? new[] { typeof(THeader) } : new[] { typeof(TBody) }, targetNamespace);
 
         /// <summary>
         /// Attempts to parse the specified XML document to an instance of <see cref="SoapEnvelope"/> using the specified type finder function.
@@ -368,14 +373,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// <param name="findTypes">
         /// A function that finds the appropriate types for each child XML element of the body, header, and fault elements.
         /// </param>
+        /// <param name="targetNamespace">The SOAP target namespace to use.</param>
         /// <returns>true if the operation succeeds, false if it fails.</returns>
-        public static bool TryParse(string xml, out SoapEnvelope result, Func<SoapEnvelopePart, Type[]> findTypes)
+        public static bool TryParse(string xml, out SoapEnvelope result, Func<SoapEnvelopePart, Type[]> findTypes, string targetNamespace = null)
         {
             result = null;
 
             try
             {
-                result = Parse(xml, findTypes);
+                result = Parse(xml, findTypes, targetNamespace);
             }
             catch (Exception)
             {
@@ -390,14 +396,15 @@ namespace Softcore.Xml.Serialization.Soap
         /// <typeparam name="TBody">The type of the body content.</typeparam>
         /// <param name="xml">A string that contains SOAP-XML.</param>
         /// <param name="result">Returns an instance of <see cref="SoapEnvelope"/> if the operation succeeds, or null if it fails.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use.</param>
         /// <returns>true if the operation succeeds, false if it fails.</returns>
-        public static bool TryParse<TBody>(string xml, out SoapEnvelope result) where TBody : class, new()
+        public static bool TryParse<TBody>(string xml, out SoapEnvelope result, string targetNamespace = null) where TBody : class, new()
         {
             result = null;
 
             try
             {
-                result = Parse<TBody>(xml);
+                result = Parse<TBody>(xml, targetNamespace);
             }
             catch
             {
@@ -413,15 +420,16 @@ namespace Softcore.Xml.Serialization.Soap
         /// <typeparam name="TBody">The type of the body content.</typeparam>
         /// <param name="xml">A string that contains SOAP-XML.</param>
         /// <param name="result">Returns an instance of <see cref="SoapEnvelope"/> if the operation succeeds, or null if it fails.</param>
+        /// <param name="targetNamespace">The SOAP target namespace to use.</param>
         /// <returns>true if the operation succeeds, false if it fails.</returns>
-        public static bool TryParse<THeader, TBody>(string xml, out SoapEnvelope result)
+        public static bool TryParse<THeader, TBody>(string xml, out SoapEnvelope result, string targetNamespace = null)
             where THeader : class, new() where TBody : class, new()
         {
             result = null;
 
             try
             {
-                result = Parse<THeader, TBody>(xml);
+                result = Parse<THeader, TBody>(xml, targetNamespace);
             }
             catch (Exception)
             {
