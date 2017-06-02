@@ -166,18 +166,10 @@ namespace Softcore.Xml.Serialization.Soap
         /// <returns></returns>
         public static SoapFaultBase Parse(XDocument doc, Type[] detailTypes = null, string targetNamespace = null)
         {
-            if (IsProtocolVersion12(targetNamespace))
+            if (doc.TryFindXElement("Fault", out XElement element))
             {
-                if (doc.TryFindXElement("Fault", out XElement element, SoapVersion12TargetNamespace))
-                {
-                    return SoapFaultBase.Parse(element, detailTypes);
-                }
+                return SoapFaultBase.Parse(element, detailTypes, targetNamespace);
             }
-            else if (doc.TryFindXElement("Fault", out XElement element, SoapVersion11TargetNamespace))
-            {
-                return SoapFaultBase.Parse(element, detailTypes);
-            }
-
             return null;
         }
 

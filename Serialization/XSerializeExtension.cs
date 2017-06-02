@@ -141,14 +141,7 @@ namespace Softcore.Xml.Serialization
                 {
                     if (xser.CanDeserialize(xr))
                     {
-                        var xde = new XmlDeserializationEvents
-                        {
-                            OnUnreferencedObject = (s, e) =>
-                            {
-                                System.Diagnostics.Debug.WriteLine("XDeserialize: Unreferenced object: {0}", e.UnreferencedObject);
-                            }
-                        };
-                        return xser.Deserialize(xr, xde);
+                        return xser.Deserialize(xr);
                     }
 
                     return ThrowCannotDeserialize(type, throwIfCannotDeserialize);
