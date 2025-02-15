@@ -1,26 +1,18 @@
-# softcore.xml
-Custom XML Serialization library for .NET with a special emphasis on SOAP-serializable objects and the brand new C# 7 syntax.
+# softcore.xml  
+A Custom XML Serialization Library for .NET with a Focus on SOAP and Modern C# 7 Syntax  
 
-## Introduction
+## Introduction  
+While working on a real-world project, I needed to integrate with a third-party service that relies heavily on XML—specifically SOAP—for data exchange. To accomplish this, I began implementing their API based on the provided documentation. However, I quickly realized that serializing and deserializing objects to and from SOAP was far from straightforward.  
 
-I'm currently working on real-world project where I need to communicate with a third-party service. It happens that XML, and SOAP 
-in particuliar, is their preferred method of exchanging information. So I started implementing their APIs' specification from a document
-that I've been given. Very soon I came to realize that serializing and deserializing the objects to and from SOAP is not an easy task.
+To my surprise, when I tested the built-in .NET SOAP formatter (`System.Runtime.Serialization.Formatters.Soap.SoapFormatter`), the output was simply horrifying—far from what I expected.  
 
-It came as a shock to me when I used the built-in .NET SOAP formatter (System.Runtime.Serialization.Formatters.Soap.SoapFormatter) when 
-it was about time to do some testing. The output was simply horrifying.
+After extensive research and countless Stack Overflow threads, I couldn't find a solution that met my needs. So, I decided to create my own serialization and deserialization logic, prioritizing simplicity, flexibility, and reusability. Now, I’m sharing this library with the developer community to make SOAP serialization easier for everyone.  
 
-After a lot of googling and diving deeply into StackOverflow, I haven't found exactly what I needed. That's why I ended up writing my
-own logic to handle the dehydration (serialization) and hydration (deserialization) processes bearing in mind simplicity, flexibility,
-and reusability. So here I am, trying to give it back to the community and my fellow developers like you to make our lives easier.
+## Purpose  
+softcore.xml enables seamless serialization of .NET objects into XML, with a strong emphasis on SOAP formatting, giving you full control over the output. It also simplifies deserialization, ensuring that objects are accurately reconstructed.  
 
-## Purpose
-
-Serialize .NET objects into XML and above all SOAP formats exactly the way you want to, and deserialize them easily back into objects.
-
-## Getting started
-
-Here's a quick example of how to use this library. Suppose you have the following SOAP file (found on StackOverflow):
+## Getting Started  
+Here's a quick example of how to use this library. Suppose you have the following SOAP file (originally found on Stack Overflow):  
 
 ```
 <?xml version="1.0" encoding="utf-8"?>
@@ -40,7 +32,7 @@ Here's a quick example of how to use this library. Suppose you have the followin
 </SOAP-ENV:Envelope>
 ```
 
-Let's suppose you have the equivalent business objects defined like that:
+Let's assume you have the corresponding business objects defined as follows:
 
 ```
 using Softcore.Xml.Serialization.Soap;
@@ -74,7 +66,7 @@ namespace MyNamespace.Models
 }
 ```
 
-You can do that by creating a test project in Visual Studio with the following SampleTests.cs file and this simple Should_Deserialize_To_Object() method:
+To test the deserialization, create a test project in Visual Studio and add the following SampleTests.cs file. Inside, implement the simple Should_Deserialize_To_Object() method:
 
 ```
 using MyNamespace.Models;
@@ -185,8 +177,8 @@ namespace MyNamespace.Tests
 }
 ```
 
-This is just a quick use case of how to deserialize a SOAP envelope into custom business objects. More will be coming soon in the wiki or some documentation for the library.
+This is just a basic example of how to deserialize a SOAP envelope into custom business objects. More detailed use cases and documentation will be available soon in the project's wiki.
 
 ## Contributions
 
-If you are interested in contributing to this project, either by submitting code, suggesting new features, or pointing out areas of improvement, please feel free to join.
+If you'd like to contribute to this project—whether by submitting code, suggesting new features, or identifying areas for improvement—you're more than welcome to join!
